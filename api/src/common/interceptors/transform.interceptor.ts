@@ -3,33 +3,58 @@ import { Response } from 'express';
 import { Observable } from 'rxjs';
 import { map } from 'rxjs/operators';
 
-type RespostaService = {
-  mensagem?: unknown;
-  mensagens?: unknown;
-  dados?: unknown;
-};
+const MESSAGE_KEYS = new Set(['message', 'messages', 'mensagem', 'mensagens']);
+const DATA_KEYS = new Set(['data', 'dados']);
 
-function ehEnvelope(data: unknown): data is RespostaService {
-  return (
-    typeof data === 'object' &&
-    data !== null &&
-    !Array.isArray(data) &&
-    ('mensagem' in data || 'mensagens' in data || 'dados' in data)
-  );
-}
+function extrairMensagens(obj: Record<string, unknown>): string[] {
+  const lista = obj.messages ?? obj.mensagens;
 
-function extrairMensagens(data: RespostaService): string[] {
-  if (Array.isArray(data.mensagens)) {
-    return data.mensagens.filter(
+  if (Array.isArray(lista)) {
+    return lista.filter(
       (item): item is string => typeof item === 'string' && item.trim().length > 0,
     );
   }
 
-  if (typeof data.mensagem === 'string' && data.mensagem.trim().length > 0) {
-    return [data.mensagem];
+  const mensagem = obj.message ?? obj.mensagem;
+
+  if (typeof mensagem === 'string' && mensagem.trim().length > 0) {
+    return [mensagem];
   }
 
   return [];
+}
+
+function extrairDados(obj: Record<string, unknown>): unknown {
+  if (obj.data !== undefined) {
+    return obj.data;
+  }
+
+  if (obj.dados !== undefined) {
+    return obj.dados;
+  }
+
+  const resto = Object.fromEntries(
+    Object.entries(obj).filter(([key]) => !MESSAGE_KEYS.has(key) && !DATA_KEYS.has(key)),
+  );
+
+  return Object.keys(resto).length > 0 ? resto : null;
+}
+
+function transformarResposta(data: unknown): { messages: string[]; data: unknown } {
+  if (data === undefined) {
+    return { messages: [], data: null };
+  }
+
+  if (typeof data !== 'object' || data === null || Array.isArray(data)) {
+    return { messages: [], data };
+  }
+
+  const obj = data as Record<string, unknown>;
+
+  return {
+    messages: extrairMensagens(obj),
+    data: extrairDados(obj),
+  };
 }
 
 @Injectable()
@@ -38,21 +63,12 @@ export class TransformInterceptor<T> implements NestInterceptor<T, any> {
     return next.handle().pipe(
       map((data: unknown) => {
         const response = context.switchToHttp().getResponse<Response>();
-
-        let mensagens: string[] = [];
-        let dados: unknown = null;
-
-        if (ehEnvelope(data)) {
-          mensagens = extrairMensagens(data);
-          dados = data.dados !== undefined ? data.dados : null;
-        } else if (data !== undefined) {
-          dados = data;
-        }
+        const { messages, data: responseData } = transformarResposta(data);
 
         return {
-          sucesso: true,
-          mensagens,
-          dados,
+          success: true,
+          messages,
+          data: responseData,
           statusCode: response.statusCode,
         };
       }),

@@ -28,9 +28,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
       const status = exception.getStatus();
 
       response.status(status).json({
-        sucesso: false,
-        mensagens: this.extrairMensagens(exception.getResponse()),
-        dados: null,
+        success: false,
+        messages: this.extrairMensagens(exception.getResponse()),
+        data: null,
         statusCode: status,
       });
       return;
@@ -39,9 +39,9 @@ export class HttpExceptionFilter implements ExceptionFilter {
     this.logger.erro('Erro não tratado', exception);
 
     response.status(HttpStatus.INTERNAL_SERVER_ERROR).json({
-      sucesso: false,
-      mensagens: ['Erro interno no servidor'],
-      dados: null,
+      success: false,
+      messages: ['Erro interno no servidor'],
+      data: null,
       statusCode: HttpStatus.INTERNAL_SERVER_ERROR,
     });
   }

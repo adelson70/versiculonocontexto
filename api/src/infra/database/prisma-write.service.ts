@@ -3,12 +3,13 @@ import { PrismaClient } from '../../../generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 
 import { LoggerCustom } from '../logger/logger.service.js';
+import { getDatabaseConnectionString } from './database-connection.js';
 
 @Injectable()
 export class PrismaWriteService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
   constructor(private readonly logger: LoggerCustom) {
     const adapter = new PrismaPg({
-      connectionString: process.env.DATABASE_URL!,
+      connectionString: getDatabaseConnectionString(),
     });
     super({
       adapter,

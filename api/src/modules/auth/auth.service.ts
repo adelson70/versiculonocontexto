@@ -1,13 +1,12 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 
 import * as bcrypt from 'bcrypt';
 
 import { PrismaReadService } from '../../infra/database/prisma-read.service.js';
 import { PrismaWriteService } from '../../infra/database/prisma-write.service.js';
 import { JwtServiceCustom } from '../../infra/auth/jwt.service.js';
-import { tratarErroPrisma } from '../../common/errors/prisma-error.mapper.js';
 import { LoginDto } from './dto/create.dto.js';
-import { UpdateUserDto } from './dto/update.dto.js';
+import { Prisma } from '../../../generated/prisma/client.js';
 
 @Injectable()
 export class AuthService {
@@ -17,40 +16,63 @@ export class AuthService {
     private readonly jwt: JwtServiceCustom,
   ) {}
 
-  // async login(dto: LoginDto) {
-  //   const usuario = await this.prismaRead.users.findFirst({
-  //     where: {
-  //       nome: {
-  //         equals: dto.nome.trim(),
-  //         mode: 'insensitive',
-  //       },
-  //     },
-  //   });
+  async login(dto: LoginDto) {
+    try {
+      const user = await this.prismaRead.users.findUnique({
+        where: {
+          email: dto.email,
+        },
+      });
 
-  //   if (!usuario) {
-  //     throw new UnauthorizedException('Usuário ou senha inválidos');
-  //   }
+      if (!user) {
+        throw new UnauthorizedException('Usuário ou senha inválidos');
+      }
 
-  //   const senhaValida = await bcrypt.compare(dto.senha, usuario.senha);
+      const passwordValid = await bcrypt.compare(dto.password, user.password);
+  
+      if (!passwordValid) {
+        throw new UnauthorizedException('Usuário ou senha inválidos');
+      }
+  
+      const token = this.jwt.generate({
+        id: user.id,
+        role: user.role,
+      });
 
-  //   if (!senhaValida) {
-  //     throw new UnauthorizedException('Usuário ou senha inválidos');
-  //   }
+      await this.prismaWrite.users.update({
+        where: { id: user.id },
+        data: { last_login: new Date() },
+      });
+  
+      return {
+        access_token: token,
+        usuario: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+        // TODO: ADD LIVROS QUE USUARIO TERA ACESSO PARA CRIAR E EDITAR REFERENCIAS E COMENTARIOS
+        // books: 
+        message: 'Login realizado com sucesso',
+      };
+    }
 
-  //   const token = this.jwt.generate({
-  //     id: usuario.id,
-  //     role: usuario.role,
-  //   });
+    catch (error){
+      if (error instanceof HttpException) {
+        throw error;
+      }
 
-  //   return {
-  //     access_token: token,
-  //     usuario: {
-  //       id: usuario.id,
-  //       nome: usuario.nome,
-  //       role: usuario.role,
-  //     },
-  //   };
-  // }
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        if (error.code === 'P2002') {
+          throw new UnauthorizedException('Usuário ou senha inválidos');
+        }
+      }
+
+      throw new InternalServerErrorException('Erro ao fazer login');
+    }
+
+  }
 
   // async me(id: string) {
   //   return this.prismaRead.usuario.findUnique({

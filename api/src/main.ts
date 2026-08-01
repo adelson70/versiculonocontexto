@@ -42,6 +42,6 @@ async function bootstrap() {
   app.useGlobalInterceptors(new TransformInterceptor());
 
   await app.listen(port ?? 5000);
-  logger.debug(`API ON em http://localhost:${port}`);
+  logger.debug(`API DOCS IN http://localhost:${port}/docs`);
 }
 void bootstrap();

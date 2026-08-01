@@ -20,8 +20,9 @@ model Users {
   email     String   @unique
   password  String
   role      Role     @default(EDITOR)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  last_login DateTime? @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   Commentaries Commentaries[]
   References References[]
@@ -38,8 +39,8 @@ model Access {
   city      String
   book      String
   chapter   String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   @@index([ip, browser, state, city, book, chapter])
   @@index([createdAt])
@@ -60,8 +61,8 @@ model Books {
   chapters  Int      @default(0)
   verses    Int      @default(0)
   authors   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   chapter  Chapters[]
 
@@ -77,8 +78,8 @@ model Chapters {
   number    Int
   verses    Int      @default(0)
   authors   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   book      Books    @relation(fields: [book_id], references: [id])
   verse     Verses[]
@@ -97,8 +98,8 @@ model Verses {
   text      String
   version   String
   authors   String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   Commentaries Commentaries[]
   ReferencesFrom References[] @relation("From_References")
@@ -117,8 +118,8 @@ model Commentaries {
   verse_id String @db.Uuid
   text      String
   authors_id   String @db.Uuid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   verse   Verses   @relation(fields: [verse_id], references: [id])
   authors   Users    @relation(fields: [authors_id], references: [id])
@@ -133,8 +134,8 @@ model References {
   verse_id String @db.Uuid
   verse_reference_id String @db.Uuid
   authors_id   String @db.Uuid
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt DateTime @updatedAt @map("updated_at") @db.Timestamptz
 
   verse   Verses   @relation("From_References", fields: [verse_id], references: [id])
   verse_reference_verse   Verses   @relation("To_References", fields: [verse_reference_id], references: [id])

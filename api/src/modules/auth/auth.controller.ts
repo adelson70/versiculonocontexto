@@ -12,12 +12,12 @@ import type { AuthUser } from '../../infra/auth/auth.guard.js';
 export class AuthController {
   constructor(private readonly auth: AuthService) {}
 
-  // @Post('login')
-  // @Public()
-  // @ApiOperation({ summary: 'Realiza o login do usuário' })
-  // async login(@Body() dto: LoginDto) {
-  //   return this.auth.login(dto);
-  // }
+  @Post('login')
+  @Public()
+  @ApiOperation({ summary: 'Realiza o login do usuário' })
+  async login(@Body() dto: LoginDto) {
+    return this.auth.login(dto);
+  }
 
   // @Post('logout')
   // @ApiBearerAuth()
