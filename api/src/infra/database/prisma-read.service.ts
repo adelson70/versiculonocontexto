@@ -1,0 +1,28 @@
+import { Injectable, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import { PrismaClient } from '../../../generated/prisma/client.js';
+import { PrismaPg } from '@prisma/adapter-pg';
+
+import { LoggerCustom } from '../logger/logger.service.js';
+
+@Injectable()
+export class PrismaReadService extends PrismaClient implements OnModuleInit, OnModuleDestroy {
+  constructor(private readonly logger: LoggerCustom) {
+    const adapter = new PrismaPg({
+      connectionString: process.env.DATABASE_URL!,
+    });
+    super({
+      adapter,
+    });
+    this.logger.definirContexto(PrismaReadService.name);
+  }
+
+  async onModuleInit() {
+    await this.$connect();
+    this.logger.debug('Banco de Dados Leitura: OK');
+  }
+
+  async onModuleDestroy() {
+    await this.$disconnect();
+    this.logger.debug('Banco de Dados Leitura: desconectado');
+  }
+}

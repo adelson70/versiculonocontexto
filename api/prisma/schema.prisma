@@ -1,0 +1,147 @@
+generator client {
+  provider     = "prisma-client"
+  output       = "../generated/prisma"
+  moduleFormat = "esm"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  ADMIN
+  MODER
+  EDITOR
+}
+
+model Users {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  email     String   @unique
+  password  String
+  role      Role     @default(EDITOR)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Commentaries Commentaries[]
+  References References[]
+
+  @@map("users")
+}
+
+
+model Access {
+  id        String   @id @default(uuid()) @db.Uuid
+  ip        String
+  browser   String
+  state     String
+  city      String
+  book      String
+  chapter   String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ip, browser, state, city, book, chapter])
+  @@index([createdAt])
+  @@index([updatedAt])
+  @@index([state])
+  @@index([city])
+  @@index([book])
+  @@index([chapter])
+
+  @@map("access")
+}
+
+model Books {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String   @unique
+  slug      String   @unique
+  description String?
+  chapters  Int      @default(0)
+  verses    Int      @default(0)
+  authors   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  chapter  Chapters[]
+
+  @@index([name])
+  @@index([slug])
+  @@index([authors])
+  @@map("books")
+}
+
+model Chapters {
+  id        String   @id @default(uuid()) @db.Uuid
+  book_id   String @db.Uuid
+  number    Int
+  verses    Int      @default(0)
+  authors   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  book      Books    @relation(fields: [book_id], references: [id])
+  verse     Verses[]
+
+  @@index([number])
+  @@index([book_id])
+  @@index([authors])
+  @@map("chapters")
+}
+
+model Verses {
+  id        String   @id @default(uuid()) @db.Uuid
+  chapter_id String @db.Uuid
+  chapter   Chapters @relation(fields: [chapter_id], references: [id])
+  number    Int
+  text      String
+  version   String
+  authors   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  Commentaries Commentaries[]
+  ReferencesFrom References[] @relation("From_References")
+  ReferencesTo References[] @relation("To_References")
+
+  @@index([number])
+  @@index([chapter_id])
+  @@index([text])
+  @@index([authors])
+  @@index([version])
+  @@map("verses")
+}
+
+model Commentaries {
+  id        String   @id @default(uuid()) @db.Uuid
+  verse_id String @db.Uuid
+  text      String
+  authors_id   String @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verse   Verses   @relation(fields: [verse_id], references: [id])
+  authors   Users    @relation(fields: [authors_id], references: [id])
+  
+  @@index([verse_id])
+  @@index([text])
+  @@map("commentaries")
+}
+
+model References {
+  id        String   @id @default(uuid()) @db.Uuid
+  verse_id String @db.Uuid
+  verse_reference_id String @db.Uuid
+  authors_id   String @db.Uuid
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  verse   Verses   @relation("From_References", fields: [verse_id], references: [id])
+  verse_reference_verse   Verses   @relation("To_References", fields: [verse_reference_id], references: [id])
+  authors   Users    @relation(fields: [authors_id], references: [id])
+
+  @@index([verse_id])
+  @@index([verse_reference_id])
+  @@index([authors_id])
+  @@map("references")
+}

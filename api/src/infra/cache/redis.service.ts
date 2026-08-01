@@ -1,0 +1,81 @@
+import { Injectable, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
+
+import { Redis } from 'ioredis';
+
+import { LoggerCustom } from '../logger/logger.service.js';
+
+@Injectable()
+export class RedisService implements OnModuleInit, OnModuleDestroy {
+  private client: Redis;
+
+  constructor(private readonly logger: LoggerCustom) {
+    this.logger.definirContexto(RedisService.name);
+
+    this.client = new Redis({
+      host: process.env.REDIS_HOST,
+      port: Number(process.env.REDIS_PORT ?? 6379),
+      password: process.env.REDIS_PASSWORD || undefined,
+      maxRetriesPerRequest: 3,
+    });
+  }
+
+  async onModuleInit() {
+    await this.client.ping();
+
+    this.logger.log('Redis conectado: OK');
+  }
+
+  async onModuleDestroy() {
+    await this.client.quit();
+
+    this.logger.log('Redis desconectado');
+  }
+
+  getClient(): Redis {
+    return this.client;
+  }
+
+  async set(key: string, value: string, ttl?: number) {
+    if (ttl) {
+      return this.client.set(key, value, 'EX', ttl);
+    }
+
+    return this.client.set(key, value);
+  }
+
+  async setNx(key: string, value: string, ttl: number): Promise<boolean> {
+    const result = await this.client.set(key, value, 'EX', ttl, 'NX');
+    return result === 'OK';
+  }
+
+  async incrWithTtl(key: string, ttlSeconds: number): Promise<number> {
+    const result = await this.client.eval(
+      `
+      local count = redis.call('INCR', KEYS[1])
+      if count == 1 then
+        redis.call('EXPIRE', KEYS[1], ARGV[1])
+      end
+      return count
+      `,
+      1,
+      key,
+      String(ttlSeconds),
+    );
+
+    return Number(result);
+  }
+
+  async get<T = string>(key: string): Promise<T | null> {
+    const value = await this.client.get(key);
+
+    if (!value) {
+      return null;
+    }
+
+    return value as T;
+  }
+
+  async delete(key: string) {
+    return this.client.del(key);
+  }
+}
