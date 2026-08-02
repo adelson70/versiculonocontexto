@@ -1,5 +1,5 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEnum, IsString, MinLength } from 'class-validator';
+import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
 
 import { Role } from '../../../../generated/prisma/enums.js';
 import { IsObrigatorio } from '../../../common/decorator/is-obrigatorio.decorator.js';
@@ -9,13 +9,19 @@ export class CreateUserDto {
   @IsString()
   @MinLength(3, { message: 'O nome deve ter pelo menos 3 caracteres' })
   @IsObrigatorio({ message: 'Informe o nome do usuário' })
-  nome!: string;
+  name: string;
+
+  @ApiProperty({ example: 'joao@gmail.com', description: 'Email do usuário' })
+  @IsString()
+  @IsObrigatorio({ message: 'Informe o email do usuário' })
+  @IsEmail({}, { message: 'Email inválido' })
+  email: string;
 
   @ApiProperty({ example: 'senha1234', description: 'Senha de acesso' })
   @IsString()
   @MinLength(4, { message: 'A senha deve ter pelo menos 4 caracteres' })
   @IsObrigatorio({ message: 'Informe a senha do usuário' })
-  senha!: string;
+  password: string;
 
   @ApiProperty({
     enum: Role,
@@ -23,5 +29,5 @@ export class CreateUserDto {
     description: 'Nível de acesso do usuário',
   })
   @IsEnum(Role, { message: 'Nível de acesso inválido' })
-  role!: Role;
+  role: Role;
 }

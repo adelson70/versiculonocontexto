@@ -1,27 +1,12 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, HttpException, Injectable, NotFoundException } from '@nestjs/common';
 
 import * as bcrypt from 'bcrypt';
 
 import { PrismaReadService } from '../../infra/database/prisma-read.service.js';
 import { PrismaWriteService } from '../../infra/database/prisma-write.service.js';
-import { tratarErroPrisma } from '../../common/errors/prisma-error.mapper.js';
 import { CreateUserDto } from './dto/create.dto.js';
 import { UpdateUserDto } from './dto/update.dto.js';
-
-const USER_SELECT = {
-  id: true,
-  nome: true,
-  role: true,
-  createdAt: true,
-  updatedAt: true,
-} as const;
-
-const ERRO_USUARIO = {
-  entidade: 'Usuário',
-  mensagensPorCampo: {
-    nome: 'Já existe um usuário com esse nome.',
-  },
-};
+import { Prisma, Role } from '../../../generated/prisma/client.js';
 
 @Injectable()
 export class UsersService {
@@ -43,108 +28,93 @@ export class UsersService {
   //   }
   // }
 
-  // async criar(dto: CriarUsuarioDto) {
-  //   try {
-  //     const senha = await bcrypt.hash(dto.senha, 10);
+  async create(dto: CreateUserDto) {
+    try {
+      const hashedPassword = await bcrypt.hash(dto.password, Number(process.env.BCRYPT_SALT_ROUNDS));
+      const userCreated = await this.prismaWrite.users.create({data: { ...dto, password: hashedPassword }, omit: {password: true}})
+      
+      return { message: 'Usuário criado com sucesso', data: userCreated };
 
-  //     const usuario = await this.prismaWrite.usuario.create({
-  //       data: { nome: dto.nome.trim(), senha, role: dto.role },
-  //       select: USUARIO_SELECT,
-  //     });
+    } catch (erro) {
 
-  //     return { mensagem: 'Usuário criado com sucesso', dados: usuario };
-  //   } catch (erro) {
-  //     throw tratarErroPrisma(erro, ERRO_USUARIO);
-  //   }
-  // }
+      if (erro instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestException('Dados inválidos');
+      }
 
-  // async editar(id: string, dto: EditarUsuarioDto) {
-  //   if (dto.nome === undefined && dto.senha === undefined && dto.role === undefined) {
-  //     return { mensagem: 'Nada para editar :)' };
-  //   }
+      if (erro instanceof Prisma.PrismaClientKnownRequestError) {
+        if (erro.code === 'P2002') {
+          throw new BadRequestException('Email já existe');
+        }
+      }
 
-  //   try {
-  //     if (dto.role !== undefined && dto.role !== 'ADMIN') {
-  //       await this.garantirNaoUltimoAdmin(id);
-  //     }
+      if (erro instanceof HttpException) {
+        throw erro;
+      }
 
-  //     const data: {
-  //       nome?: string;
-  //       senha?: string;
-  //       role?: EditarUsuarioDto['role'];
-  //     } = {};
+      throw erro;
+    }
+  }
 
-  //     if (dto.nome !== undefined) {
-  //       data.nome = dto.nome.trim();
-  //     }
+  async update(dto: UpdateUserDto) {
+    try {
+      let updateData: {
+        name?: string;
+        email?: string;
+        password?: string;
+        role?: Role;
+      } = {};
 
-  //     if (dto.senha !== undefined) {
-  //       data.senha = await bcrypt.hash(dto.senha, 10);
-  //     }
+      if (dto.name) {
+        updateData.name = dto.name;
+      }
+      if (dto.email) {
+        updateData.email = dto.email;
+      }
+      if (dto.password) {
+        updateData.password = await bcrypt.hash(dto.password, Number(process.env.BCRYPT_SALT_ROUNDS));
+      }
+      if (dto.role) {
+        updateData.role = dto.role;
+      }
 
-  //     if (dto.role !== undefined) {
-  //       data.role = dto.role;
-  //     }
+      if (!updateData) {
+        throw new BadRequestException('Nenhum dado para atualizar');
+      }
 
-  //     const atualizado = await this.prismaWrite.usuario.update({
-  //       where: { id },
-  //       data,
-  //       select: USUARIO_SELECT,
-  //     });
+      await this.prismaWrite.users.update({ where: { id: dto.id }, data: updateData });
+      return { message: 'Usuário atualizado com sucesso' };
+    }
+    catch (erro) {
+      if (erro instanceof Prisma.PrismaClientValidationError) {
+        throw new BadRequestException('Dados inválidos');
+      }
+      if (erro instanceof Prisma.PrismaClientKnownRequestError) {
+        if (erro.code === 'P2002') {
+          throw new BadRequestException('Email já existe');
+        }
+      }
+      if (erro instanceof HttpException) {
+        throw erro;
+      }
+      throw erro;
+    }
+  }
 
-  //     return { mensagem: 'Usuário editado com sucesso', dados: atualizado };
-  //   } catch (erro) {
-  //     throw tratarErroPrisma(erro, ERRO_USUARIO);
-  //   }
-  // }
+  async delete(id: string) {
+    try {
+      await this.prismaWrite.users.delete({ where: { id } });
 
-  // async deletar(id: string, solicitanteId: string) {
-  //   try {
-  //     if (id === solicitanteId) {
-  //       throw new BadRequestException('Você não pode excluir o seu próprio usuário.');
-  //     }
-
-  //     await this.garantirNaoUltimoAdmin(id);
-
-  //     await this.prismaWrite.usuario.delete({ where: { id } });
-
-  //     return { mensagem: 'Usuário excluído com sucesso' };
-  //   } catch (erro) {
-  //     throw tratarErroPrisma(erro, ERRO_USUARIO);
-  //   }
-  // }
-
-  // async forcarLogout(id: string) {
-  //   try {
-  //     const usuario = await this.prismaRead.usuario.findUniqueOrThrow({
-  //       where: { id },
-  //       select: { id: true },
-  //     });
-
-  //     this.websocket.forcarLogout(usuario.id);
-
-  //     return { mensagem: 'Logout solicitado' };
-  //   } catch (erro) {
-  //     throw tratarErroPrisma(erro, ERRO_USUARIO);
-  //   }
-  // }
-
-  // private async garantirNaoUltimoAdmin(id: string) {
-  //   const alvo = await this.prismaRead.usuario.findUnique({
-  //     where: { id },
-  //     select: { role: true },
-  //   });
-
-  //   if (alvo?.role !== 'ADMIN') {
-  //     return;
-  //   }
-
-  //   const outrosAdmins = await this.prismaRead.usuario.count({
-  //     where: { role: 'ADMIN', id: { not: id } },
-  //   });
-
-  //   if (outrosAdmins === 0) {
-  //     throw new BadRequestException('Não é possível remover o último administrador.');
-  //   }
-  // }
+      return { message: 'Usuário excluído com sucesso' };
+    } catch (erro) {
+      if (erro instanceof Prisma.PrismaClientKnownRequestError) {
+        if (erro.code === 'P2025') {
+          throw new NotFoundException('Usuário não encontrado');
+        }
+      }
+      if (erro instanceof HttpException) {
+        throw erro;
+      }
+      throw erro;
+    }
+  }
 }
