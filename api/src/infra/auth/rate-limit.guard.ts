@@ -35,13 +35,13 @@ export class RateLimitGuard implements CanActivate {
       return true;
     }
 
-    if (req.user?.tipo === 'usuario') {
-      await this.rateLimit.consume(
-        `rl:usuario:${req.user.id}`,
-        RATE_LIMIT_USUARIO_MAX,
-        RATE_LIMIT_WINDOW_SECONDS,
-      );
-    }
+    // if (req.user?.tipo === 'usuario') {
+    //   await this.rateLimit.consume(
+    //     `rl:usuario:${req.user.id}`,
+    //     RATE_LIMIT_USUARIO_MAX,
+    //     RATE_LIMIT_WINDOW_SECONDS,
+    //   );
+    // }
 
     return true;
   }

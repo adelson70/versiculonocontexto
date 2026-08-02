@@ -45,7 +45,7 @@ export class AuthService {
       });
   
       return {
-        access_token: token,
+        token,
         usuario: {
           id: user.id,
           name: user.name,
@@ -74,18 +74,32 @@ export class AuthService {
 
   }
 
-  // async me(id: string) {
-  //   return this.prismaRead.usuario.findUnique({
-  //     where: {
-  //       id,
-  //     },
-  //     select: {
-  //       id: true,
-  //       nome: true,
-  //       role: true,
-  //     },
-  //   });
-  // }
+  async me(id: string) {
+    try {
+      return this.prismaRead.users.findUnique({
+        where: {
+          id,
+        },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          last_login: true,
+          role: true,
+        },
+      });
+    }
+    catch (error) {
+      if (error instanceof HttpException) {
+        throw error;
+      }
+
+      if (error instanceof Prisma.PrismaClientKnownRequestError) {
+        throw new InternalServerErrorException('Erro ao buscar usuário');
+      }
+    }
+
+  }
 
   // async editar(id: string, dto: EditarPerfilDto) {
   //   if (dto.nome === undefined && dto.senha === undefined) {
@@ -125,10 +139,4 @@ export class AuthService {
   //     });
   //   }
   // }
-
-  logout() {
-    return {
-      mensagem: 'Logout realizado',
-    };
-  }
 }

@@ -7,7 +7,6 @@ import { JwtServiceCustom } from './jwt.service.js';
 import type { Role } from '../../../generated/prisma/enums.js';
 
 export type AuthUser = {
-  tipo: 'usuario';
   id: string;
   role: Role;
 };
@@ -48,9 +47,8 @@ export class AuthGuard implements CanActivate {
       }
 
       req.user = {
-        tipo: 'usuario',
         id: payload.id,
-        role: payload.role ?? 'OPERADOR',
+        role: payload.role,
       };
 
       return true;
