@@ -15,6 +15,7 @@ import { RateLimitGuard } from './infra/auth/rate-limit.guard.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { UsersModule } from './modules/user/user.module.js';
 import { validarEnv } from './config/env.validation.js';
+import { CommentariesModule } from './modules/commentaries/commentaries.module.js';
 
 @Module({
   imports: [
@@ -36,6 +37,7 @@ import { validarEnv } from './config/env.validation.js';
     InfraJwtModule,
     AuthModule,
     UsersModule,
+    CommentariesModule,
   ],
   controllers: [AppController],
   providers: [
