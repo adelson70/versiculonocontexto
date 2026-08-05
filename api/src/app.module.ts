@@ -16,6 +16,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { UsersModule } from './modules/user/user.module.js';
 import { validarEnv } from './config/env.validation.js';
 import { CommentariesModule } from './modules/commentaries/commentaries.module.js';
+import { ReferencesModule } from './modules/references/references.module.js';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { CommentariesModule } from './modules/commentaries/commentaries.module.j
     AuthModule,
     UsersModule,
     CommentariesModule,
+    ReferencesModule,
   ],
   controllers: [AppController],
   providers: [

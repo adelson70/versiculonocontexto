@@ -1,0 +1,24 @@
+-- Padroniza slugs dos livros para abreviações em português (PT-BR)
+
+UPDATE "books" SET "slug" = 'jz' WHERE "slug" = 'jud';
+UPDATE "books" SET "slug" = '1rs' WHERE "slug" = '1kgs';
+UPDATE "books" SET "slug" = '2rs' WHERE "slug" = '2kgs';
+UPDATE "books" SET "slug" = '1cr' WHERE "slug" = '1ch';
+UPDATE "books" SET "slug" = '2cr' WHERE "slug" = '2ch';
+UPDATE "books" SET "slug" = 'ed' WHERE "slug" = 'ezr';
+UPDATE "books" SET "slug" = 'sl' WHERE "slug" = 'ps';
+UPDATE "books" SET "slug" = 'pv' WHERE "slug" = 'prv';
+UPDATE "books" SET "slug" = 'ct' WHERE "slug" = 'so';
+UPDATE "books" SET "slug" = 'os' WHERE "slug" = 'ho';
+UPDATE "books" SET "slug" = 'mq' WHERE "slug" = 'mi';
+UPDATE "books" SET "slug" = 'hc' WHERE "slug" = 'hk';
+UPDATE "books" SET "slug" = 'sf' WHERE "slug" = 'zp';
+UPDATE "books" SET "slug" = 'ag' WHERE "slug" = 'hg';
+UPDATE "books" SET "slug" = 'mc' WHERE "slug" = 'mk';
+UPDATE "books" SET "slug" = 'lc' WHERE "slug" = 'lk';
+UPDATE "books" SET "slug" = 'at' WHERE "slug" = 'act';
+UPDATE "books" SET "slug" = 'ef' WHERE "slug" = 'eph';
+UPDATE "books" SET "slug" = 'fp' WHERE "slug" = 'ph';
+UPDATE "books" SET "slug" = 'fm' WHERE "slug" = 'phm';
+UPDATE "books" SET "slug" = 'tg' WHERE "slug" = 'jm';
+UPDATE "books" SET "slug" = 'ap' WHERE "slug" = 're';
