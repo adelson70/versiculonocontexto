@@ -1,12 +1,15 @@
+import { PrismaWriteService } from '../../infra/database/prisma-write.service.js';
 import { HttpException, Injectable, NotFoundException } from '@nestjs/common';
 
 import { PrismaReadService } from '../../infra/database/prisma-read.service.js';
 import { Prisma } from '../../../generated/prisma/client.js';
+import { getLocationByIp } from '../../common/utils/get-location-ip.js';
 
 @Injectable()
 export class VerseService {
   constructor(
     private readonly prismaRead: PrismaReadService,
+    private readonly prismaWrite: PrismaWriteService,
   ) {}
 
   private normalizeText(value: string) {
@@ -36,7 +39,7 @@ export class VerseService {
     return books.find((item) => this.normalizeText(item.name) === normalizedBook) ?? null;
   }
 
-  async list(book: string, number_chapter: number) {
+  async list(book: string, number_chapter: number, ip: string, browser: string) {
     try {
       const bookRecord = await this.findBook(book);
 
@@ -62,6 +65,19 @@ export class VerseService {
       if (!verses.length) {
         throw new NotFoundException('Capítulo ou versículos não encontrados');
       }
+
+      const { city, state } = await getLocationByIp(ip);
+
+      await this.prismaWrite.access.create({
+        data: {
+          book: bookRecord.name,
+          chapter: number_chapter.toString(),
+          ip,
+          browser,
+          state,
+          city,
+        },
+      });
 
       return {
         message: 'Versículos encontrados com sucesso',

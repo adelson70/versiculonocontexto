@@ -35,8 +35,8 @@ model Access {
   id        String   @id @default(uuid()) @db.Uuid
   ip        String
   browser   String
-  state     String
-  city      String
+  state     String?
+  city      String?
   book      String
   chapter   String
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz

@@ -17,6 +17,7 @@ async function bootstrap() {
   const logger = new LoggerCustom().definirContexto('APP');
 
   app.enableShutdownHooks();
+  app.set('trust proxy', true);
 
   app.use(httpLogger);
 

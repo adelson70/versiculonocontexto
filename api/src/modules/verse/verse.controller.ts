@@ -1,9 +1,11 @@
-import { Body, Controller, Delete, Get, Param, Post, Put, Query, Req } from '@nestjs/common';
-import { ApiBearerAuth, ApiBody, ApiOperation, ApiTags } from '@nestjs/swagger';
+import { Controller, Get, Param, Query, Req } from '@nestjs/common';
+import { ApiOperation, ApiTags } from '@nestjs/swagger';
+import type { Request } from 'express';
 
 import { VerseService } from './verse.service.js';
-import { FindVerseDto } from './dto/find.dto.js';
 import { Public } from '../../common/decorator/public.decorator.js';
+import { getClientBrowser } from '../../common/utils/get-client-browser.js';
+import { getClientIp } from '../../common/utils/get-client-ip.js';
 
 @ApiTags('Verses')
 @Public()
@@ -16,8 +18,12 @@ export class VerseController {
   async list(
     @Query('book') book: string,
     @Query('number_chapter') number_chapter: number,
+    @Req() req: Request
   ) {
-    return this.verse.list(book, number_chapter);
+    const browser = getClientBrowser(req);
+    const ip = getClientIp(req);
+
+    return this.verse.list(book, number_chapter, ip, browser);
   }
 
   @Get('/details/:verse_id')
