@@ -26,7 +26,8 @@ model Users {
 
   Commentaries Commentaries[]
   References References[]
-
+  Backgrounds Backgrounds[]
+  
   @@map("users")
 }
 
@@ -83,7 +84,8 @@ model Chapters {
 
   book      Books    @relation(fields: [book_id], references: [id])
   verse     Verses[]
-
+  Background Backgrounds[]
+  
   @@index([number])
   @@index([book_id])
   @@index([authors])
@@ -145,4 +147,21 @@ model References {
   @@index([verse_reference_id])
   @@index([authors_id])
   @@map("references")
+}
+
+model Backgrounds {
+  id         String   @id @default(uuid()) @db.Uuid
+  chapter_id String @db.Uuid @unique
+  context    String?
+  authors_id String @db.Uuid
+  createdAt  DateTime @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt  DateTime @updatedAt @map("updated_at") @db.Timestamptz
+
+  chapter   Chapters @relation(fields: [chapter_id], references: [id])
+  authors   Users    @relation(fields: [authors_id], references: [id])
+
+  @@index([chapter_id])
+  @@index([context])
+  @@index([authors_id])
+  @@map("backgrounds")
 }

@@ -58,9 +58,21 @@ export class VerseService {
           id: true,
           number: true,
           text: true,
+          chapter_id: true,
         },
         orderBy: { number: 'asc' },
       });
+
+      const background = await this.prismaRead.backgrounds.findFirst({
+        where: {
+          chapter_id: verses[0].chapter_id,
+        },
+        select: {
+          id: true,
+          context: true,
+        },
+      });
+
 
       if (!verses.length) {
         throw new NotFoundException('Capítulo ou versículos não encontrados');
@@ -86,6 +98,7 @@ export class VerseService {
             name: bookRecord.name,
             slug: bookRecord.slug,
           },
+          background: background || "",
           number_chapter,
           verses,
         },

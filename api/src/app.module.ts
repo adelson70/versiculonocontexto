@@ -18,6 +18,7 @@ import { validarEnv } from './config/env.validation.js';
 import { CommentariesModule } from './modules/commentaries/commentaries.module.js';
 import { ReferencesModule } from './modules/references/references.module.js';
 import { VerseModule } from './modules/verse/verse.module.js';
+import { BackgroundModule } from './modules/background/background.module.js';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { VerseModule } from './modules/verse/verse.module.js';
     CommentariesModule,
     ReferencesModule,
     VerseModule,
+    BackgroundModule,
   ],
   controllers: [AppController],
   providers: [
