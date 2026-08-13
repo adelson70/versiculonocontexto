@@ -104,6 +104,7 @@ export class VerseService {
         },
       };
     } catch (erro) {
+      console.log('erro', erro);
       if (erro instanceof Prisma.PrismaClientKnownRequestError) {
         if (erro.code === 'P2025') {
           throw new NotFoundException('Livro, capítulo ou versículo não encontrado');

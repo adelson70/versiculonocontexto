@@ -1,7 +1,6 @@
 import { Module } from '@nestjs/common';
 import { APP_GUARD } from '@nestjs/core';
 import { ConfigModule } from '@nestjs/config';
-import { BullModule } from '@nestjs/bullmq';
 
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -19,6 +18,8 @@ import { CommentariesModule } from './modules/commentaries/commentaries.module.j
 import { ReferencesModule } from './modules/references/references.module.js';
 import { VerseModule } from './modules/verse/verse.module.js';
 import { BackgroundModule } from './modules/background/background.module.js';
+import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
+import { ThrottlerStorageRedisService } from '@nest-lab/throttler-storage-redis'
 
 @Module({
   imports: [
@@ -27,12 +28,19 @@ import { BackgroundModule } from './modules/background/background.module.js';
       envFilePath: '.env',
       validate: validarEnv,
     }),
-    BullModule.forRoot({
-      connection: {
+    ThrottlerModule.forRoot({
+      throttlers: [
+        {
+          name: 'default',
+          ttl: Number(process.env.THROTTLE_TTL),
+          limit: Number(process.env.THROTTLE_LIMIT),
+        },
+      ],
+      storage: new ThrottlerStorageRedisService({
         host: process.env.REDIS_HOST || 'localhost',
         port: Number(process.env.REDIS_PORT) || 6379,
-        password: process.env.REDIS_PASSWORD || '',
-      },
+      }),
+      errorMessage: 'Você atingiu o limite de requisições. Por favor, tente novamente mais tarde.',
     }),
     LoggerModule,
     DatabaseModule,
@@ -59,6 +67,10 @@ import { BackgroundModule } from './modules/background/background.module.js';
     {
       provide: APP_GUARD,
       useClass: RateLimitGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
     },
   ],
 })
