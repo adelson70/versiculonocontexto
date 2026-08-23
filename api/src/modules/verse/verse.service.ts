@@ -63,6 +63,10 @@ export class VerseService {
         orderBy: { number: 'asc' },
       });
 
+      if (!verses.length) {
+        throw new NotFoundException('Capítulo ou versículos não encontrados');
+      }
+
       const background = await this.prismaRead.backgrounds.findFirst({
         where: {
           chapter_id: verses[0].chapter_id,
@@ -74,9 +78,6 @@ export class VerseService {
       });
 
 
-      if (!verses.length) {
-        throw new NotFoundException('Capítulo ou versículos não encontrados');
-      }
 
       const { city, state } = await getLocationByIp(ip);
 
