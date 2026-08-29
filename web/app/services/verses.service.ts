@@ -30,3 +30,12 @@ export const getVerses = async (book: string, number_chapter: number) => {
     throw new Error(error.response?.data?.message || "Erro ao buscar versículos");
   }
 }; 
+
+export const getVerseDetails = async (verse_id: string) => {
+  try {
+    const response = await api.get(`/verses/details/${verse_id}`);
+    return response.data
+  } catch (error: any) {
+    throw new Error(error.response?.data?.message || "Erro ao buscar versículos");
+  }
+}

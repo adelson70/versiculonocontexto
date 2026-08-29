@@ -159,6 +159,7 @@ export class VerseService {
                       },
                     },
                   },
+                  text: true,
                 },
               },
             },
@@ -187,6 +188,7 @@ export class VerseService {
             book: reference.verse_reference_verse.chapter.book.name,
             number_chapter: reference.verse_reference_verse.chapter.number,
             number_verse: reference.verse_reference_verse.number,
+            text: reference.verse_reference_verse.text
           })),
         },
       };
