@@ -498,7 +498,9 @@ export default function Versiculos({
                                         aria-label="Referências"
                                         className="space-y-4"
                                     >
-                                        {verseDetails?.references.map((reference) => (
+
+                                    {verseDetails?.references.length ? (
+                                        verseDetails.references.map((reference) => (
                                             <div
                                                 key={reference.id}
                                                 className="
@@ -524,7 +526,15 @@ export default function Versiculos({
                                                     {reference.text}
                                                 </p>
                                             </div>
-                                        ))}
+                                        ))
+                                    ) : (
+                                        <div className="flex items-center justify-center mt-50">
+                                            <p className="font-body text-sm text-foreground-muted">
+                                                Nenhuma referência encontrada.
+                                            </p>
+                                        </div>
+                                    )}
+
                                     </div>
                                 )}
 
@@ -534,22 +544,31 @@ export default function Versiculos({
                                         aria-label="Comentários"
                                         className="space-y-4"
                                     >
-                                        {verseDetails?.commentaries.map((commentary) => (
-                                            <div
-                                                key={commentary.id}
-                                                className="
-                                                    rounded-xl
-                                                    border
-                                                    border-border-subtle
-                                                    bg-surface-raised
-                                                    p-5
-                                                "
-                                            >
-                                                <p className="font-body text-sm leading-relaxed text-foreground">
-                                                    {commentary.text}
-                                                </p>
-                                            </div>
-                                        ))}
+                                        {verseDetails?.commentaries.length ? (
+                                            verseDetails?.commentaries.map((commentary) => (
+                                                <div
+                                                    key={commentary.id}
+                                                    className="
+                                                        rounded-xl
+                                                        border
+                                                        border-border-subtle
+                                                        bg-surface-raised
+                                                        p-5
+                                                    "
+                                                >
+                                                    <p className="font-body text-sm leading-relaxed text-foreground">
+                                                        {commentary.text}
+                                                    </p>
+                                                </div>
+                                            ))
+
+                                        ) : (
+                                            <div className="flex items-center justify-center mt-50">
+                                            <p className="font-body text-sm text-foreground-muted">
+                                                Nenhuma comentário encontrado.
+                                            </p>
+                                        </div>
+                                        )}
                                     </div>
                                 )}
 
